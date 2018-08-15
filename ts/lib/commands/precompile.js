@@ -1,7 +1,7 @@
 /* eslint-env node */
 'use strict';
 
-const tmpdir = require('../utilities/tmpdir');
+const tmpdir = null; // require('../utilities/tmpdir');
 const execa = require('execa');
 const fs = require('fs-extra');
 const path = require('path');

@@ -6,7 +6,7 @@
   "dependencies": {
     "ember-cli-babel": "*"
   },
-  "devDependencies": {
-    "ember-cli-typescript": "*"
+  "ember-addon": {
+    "paths": ["../../../.."]
   }
 }

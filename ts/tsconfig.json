@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2016",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "outDir": "../lib",
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "noEmit": true,
+    "declaration": false,
+    "paths": {
+      "*": ["./types/*"],
+      "ember-cli/*": ["./types/ember-cli.d.ts"]
+    },
+    "baseUrl": ".",
+    "rootDir": "lib"
+  }
+}

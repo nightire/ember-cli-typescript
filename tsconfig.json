@@ -6,6 +6,10 @@
     "noEmitOnError": true,
     "inlineSourceMap": true,
     "inlineSources": true,
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
     "baseUrl": ".",
     "paths": {
       "dummy/tests/*": ["tests/*", "tests/dummy/lib/in-repo-a/test-support/*"],

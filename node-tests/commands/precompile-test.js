@@ -11,7 +11,7 @@ const chai = require('ember-cli-blueprint-test-helpers/chai');
 const expect = chai.expect;
 const file = chai.file;
 
-describe('Acceptance: ts:precompile command', function() {
+describe.skip('Acceptance: ts:precompile command', function() {
   setupTestHooks(this);
 
   beforeEach(function() {

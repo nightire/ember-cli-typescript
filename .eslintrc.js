@@ -11,6 +11,15 @@ module.exports = {
   },
   rules: {},
   overrides: [
+    {
+      files: ['**/*.ts'],
+      parser: 'typescript-eslint-parser',
+      rules: {
+        'no-undef': 'off',
+        'no-unused-vars': 'off'
+      }
+    },
+
     // node files
     {
       files: [
@@ -22,8 +31,9 @@ module.exports = {
         'tests/dummy/config/**/*.js',
         'lib/**/*.js',
         'node-tests/**/*.js',
+        'ts/**/*.{js,ts}'
       ],
-      excludedFiles: ['app/**', 'addon/**', 'tests/dummy/app/**'],
+      excludedFiles: ['app/**', 'addon/**', 'tests/dummy/app/**', '**/*.d.ts'],
       parserOptions: {
         sourceType: 'script',
         ecmaVersion: 2015,
@@ -34,9 +44,20 @@ module.exports = {
       },
       plugins: ['node'],
       rules: Object.assign({}, require('eslint-plugin-node').configs.recommended.rules, {
-        // add your custom rules and overrides for node files here
         'ember/avoid-leaking-state-in-ember-objects': 'off',
+        'node/no-missing-require': ['error', { tryExtensions: ['.js', '.json', '.ts'] }]
       }),
+    },
+
+    {
+      files: ['ts/**/*.ts'],
+      excludedFiles: ['**/*.d.ts'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'node/no-unsupported-features': ['error', { ignores: ['modules'] }],
+      }
     },
 
     // test files

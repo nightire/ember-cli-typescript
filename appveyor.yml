@@ -27,6 +27,7 @@ cache:
 test_script:
   # Output useful info for debugging.
   - yarn versions
+  - yarn addon:build
   - cmd: yarn ember try:one defaults
 
 # Don't actually build.

@@ -1,6 +1,6 @@
 module.exports = {
   useYarn: true,
-  command: 'ember test && yarn nodetest',
+  command: 'ember test && yarn test:node',
   scenarios: [
     {
       name: 'defaults',

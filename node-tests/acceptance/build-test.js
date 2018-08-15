@@ -29,7 +29,7 @@ describe('Acceptance: build', function() {
     yield server.waitForBuild();
 
     expectModuleBody(this.app, 'skeleton-app/app', `
-      exports.add = add;
+      _exports.add = add;
       function add(a, b) {
         return a + b;
       }
@@ -42,7 +42,9 @@ describe('Acceptance: build', function() {
     yield server.waitForBuild();
 
     expectModuleBody(this.app, 'skeleton-app/app', `
-      var foo = exports.foo = 'hello';
+      _exports.foo = void 0;
+      var foo = 'hello';
+      _exports.foo = foo;
     `);
   }));
 
