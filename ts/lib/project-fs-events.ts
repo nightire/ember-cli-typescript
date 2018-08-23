@@ -3,24 +3,35 @@ import Project from 'ember-cli/lib/models/project';
 import Watcher from 'ember-cli/lib/models/watcher';
 import SaneWatcher from 'ember-cli-broccoli-sane-watcher';
 
-interface HasECTSEvents {
-  __ects_events__?: EventEmitter;
-}
-
+/**
+ * Returns an `EventEmitter` that will emit `add`, `change` and `delete` events
+ * with absolute file paths whenever a file change is detected in the given
+ * ember-cli `Project`. In non-watched builds, no events will ever be emitted.
+ */
 export function getFSEventEmitter(project: Project): EventEmitter {
-  const watcherClass = project.require('ember-cli/lib/models/watcher') as typeof Watcher & HasECTSEvents;
+  type WatcherClass = typeof Watcher & MaybeHasECTSEvents;
+  const watcherClass = project.require('ember-cli/lib/models/watcher') as WatcherClass;
+
   if (!watcherClass.__ects_events__) {
     patch(watcherClass);
   }
+
   return watcherClass.__ects_events__!;
+}
+
+interface MaybeHasECTSEvents {
+  __ects_events__?: EventEmitter;
 }
 
 // Patch Ember CLI's `Watcher` class so that we can get a backdoor into the FS events it emits
 function patch(watcherClass: typeof Watcher) {
+  const BaseClass = Object.getPrototypeOf(watcherClass.prototype).constructor;
   const ensurePosix = require('ensure-posix-path') as (path: string) => string;
   const events = new EventEmitter();
+  const fileEventCallback = (type: string) => (file: string, root: string) =>
+    events.emit(type, ensurePosix(`${root}/${file}`));
 
-  class HackedWatcher extends Object.getPrototypeOf(watcherClass.prototype).constructor {
+  class ECTSPatchedWatcher extends BaseClass {
     private _watcher!: SaneWatcher;
 
     get watcher() {
@@ -36,11 +47,11 @@ function patch(watcherClass: typeof Watcher) {
       watcher.watched = new Proxy(watcher.watched, {
         set(watched, path: string, watcher: EventEmitter) {
           watched[path] = watcher
-            .on('add', (file, root) => events.emit('ts:add', ensurePosix(`${root}/${file}`)))
-            .on('change', (file, root) => events.emit('ts:change', ensurePosix(`${root}/${file}`)))
-            .on('delete', (file, root) => events.emit('ts:delete', ensurePosix(`${root}/${file}`)));
+            .on('add', fileEventCallback('add'))
+            .on('change', fileEventCallback('change'))
+            .on('delete', fileEventCallback('delete'));
           return true;
-        }
+        },
       });
     }
 
@@ -49,6 +60,7 @@ function patch(watcherClass: typeof Watcher) {
     }
   }
 
-  Object.setPrototypeOf(watcherClass.prototype, Object.create(HackedWatcher.prototype));
-  Object.setPrototypeOf(watcherClass, HackedWatcher);
+  // Inject our patches into the default watcher class's prototype chain
+  Object.setPrototypeOf(watcherClass.prototype, Object.create(ECTSPatchedWatcher.prototype));
+  Object.setPrototypeOf(watcherClass, ECTSPatchedWatcher);
 }

@@ -46,3 +46,12 @@ declare module 'ember-cli/lib/models/watcher' {
     watcher: SaneWatcher;
   }
 }
+
+declare module 'ember-cli/lib/models/blueprint' {
+  import CoreObject from 'core-object';
+
+  export = Blueprint;
+  class Blueprint extends CoreObject {
+
+  }
+}
