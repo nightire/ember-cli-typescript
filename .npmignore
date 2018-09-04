@@ -4,6 +4,7 @@
 /tests
 /tmp
 /ts
+/js/tests
 **/.gitkeep
 .bowerrc
 .editorconfig

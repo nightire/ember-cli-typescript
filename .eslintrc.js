@@ -56,7 +56,9 @@ module.exports = {
         sourceType: 'module',
       },
       rules: {
-        'node/no-unsupported-features': ['error', { ignores: ['modules'] }],
+        'node/no-unsupported-features': ['error', {
+          ignores: ['modules', 'asyncAwait']
+        }],
       }
     },
 

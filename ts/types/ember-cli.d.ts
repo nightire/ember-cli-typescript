@@ -15,6 +15,7 @@ declare module 'ember-cli/lib/models/addon' {
     app?: EmberApp;
     options?: {};
     parent: Addon | Project;
+    isDevelopingAddon(): boolean;
   }
 }
 
@@ -28,6 +29,7 @@ declare module 'ember-cli/lib/models/project' {
     root: string;
     ui: UI;
     require(module: string): unknown;
+    isEmberCLIAddon(): boolean;
   }
 }
 
@@ -53,5 +55,17 @@ declare module 'ember-cli/lib/models/blueprint' {
   export = Blueprint;
   class Blueprint extends CoreObject {
 
+  }
+}
+
+declare module 'ember-cli/lib/models/command' {
+  import CoreObject from 'core-object';
+  import Project from 'ember-cli/lib/models/project';
+  import UI from 'console-ui';
+
+  export = Command;
+  class Command extends CoreObject {
+    project: Project;
+    ui: UI;
   }
 }

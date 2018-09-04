@@ -37,32 +37,26 @@ export default class ProjectTypeChecker extends EventEmitter {
 
   private project: Project;
   private ts: TSImpl;
-
   private configFilePath: string;
-  private pendingBuild: PendingBuild;
   private compilerOptions: CompilerOptions;
-  private diagnostics: Diagnostic[];
-  private fileCallbacks: Map<string, FileWatcherCallback>;
-  private dirCallbacks: Map<string, DirectoryWatcherCallback>;
-  private formatDiagnosticsHost: FormatDiagnosticsHost;
+
+  private diagnostics: Diagnostic[] = [];
+  private pendingBuild: PendingBuild = { settled: true, promise: Promise.resolve() };
+  private fileCallbacks: Map<string, FileWatcherCallback> = new Map();
+  private dirCallbacks: Map<string, DirectoryWatcherCallback> = new Map();
+  private formatDiagnosticsHost: FormatDiagnosticsHost = {
+    getCanonicalFileName: file => file,
+    getCurrentDirectory: () => this.ts.sys.getCurrentDirectory(),
+    getNewLine: () => this.ts.sys.newLine,
+  };
 
   constructor(project: Project) {
     super();
 
     this.project = project;
     this.ts = project.require('typescript') as TSImpl;
-
-    this.pendingBuild = { settled: true, promise: Promise.resolve() };
     this.configFilePath = this.findConfigFile();
     this.compilerOptions = this.buildConfig();
-    this.diagnostics = [];
-    this.fileCallbacks = new Map();
-    this.dirCallbacks = new Map();
-    this.formatDiagnosticsHost = {
-      getCanonicalFileName: file => file,
-      getCurrentDirectory: this.ts.sys.getCurrentDirectory,
-      getNewLine: () => this.ts.sys.newLine,
-    };
   }
 
   /**
@@ -120,9 +114,6 @@ export default class ProjectTypeChecker extends EventEmitter {
     this.triggerFileCallback(file, this.ts.FileWatcherEventKind.Deleted);
   }
 
-  /**
-   *
-   */
   private triggerFileCallback(file: string, kind: FileWatcherEventKind) {
     let callback = this.fileCallbacks.get(file);
     if (callback) {

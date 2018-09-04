@@ -1,16 +1,13 @@
-/* eslint-env node */
-'use strict';
+import execa from 'execa';
+import fs from 'fs-extra';
+import os from 'os';
+import path from 'path';
+import walkSync from 'walk-sync';
+import { commandDefinition } from '../utilities/ember-cli-definitions';
 
-const tmpdir = null; // require('../utilities/tmpdir');
-const execa = require('execa');
-const fs = require('fs-extra');
-const path = require('path');
-const walkSync = require('walk-sync');
-const Command = require('ember-cli/lib/models/command'); // eslint-disable-line node/no-unpublished-require
+export const PRECOMPILE_MANIFEST = 'tmp/.ts-precompile-manifest';
 
-const PRECOMPILE_MANIFEST = 'tmp/.ts-precompile-manifest';
-
-module.exports = Command.extend({
+export default commandDefinition({
   name: 'ts:precompile',
   works: 'insideProject',
   description:
@@ -18,10 +15,10 @@ module.exports = Command.extend({
 
   availableOptions: [{ name: 'manifest-path', type: String, default: PRECOMPILE_MANIFEST }],
 
-  run(options) {
+  run(options: { manifestPath: string }): Promise<void> {
     let manifestPath = options.manifestPath;
     let project = this.project;
-    let outDir = `${tmpdir()}/e-c-ts-precompile-${process.pid}`;
+    let outDir = `${os.tmpdir()}/e-c-ts-precompile-${process.pid}`;
 
     // prettier-ignore
     let flags = [
@@ -30,6 +27,7 @@ module.exports = Command.extend({
       '--allowJs', 'false',
       '--noEmit', 'false',
       '--declaration',
+      '--emitDeclarationOnly',
       '--sourceMap', 'false',
       '--inlineSourceMap', 'false',
       '--inlineSources', 'false',
@@ -39,12 +37,9 @@ module.exports = Command.extend({
     fs.mkdirsSync(outDir);
 
     return execa('tsc', flags).then(() => {
-      let output = [];
+      let output: string[] = [];
       for (let declSource of walkSync(outDir, { globs: ['**/*.d.ts'] })) {
         if (this._shouldCopy(declSource)) {
-          let compiled = declSource.replace(/\.d\.ts$/, '.js');
-          this._copyFile(output, `${outDir}/${compiled}`, compiled);
-
           // We can only do anything meaningful with declarations for files in addon/ or src/
           if (this._isAddonFile(declSource)) {
             let declDest = declSource
@@ -63,25 +58,25 @@ module.exports = Command.extend({
     });
   },
 
-  _shouldCopy(source) {
+  _shouldCopy(source: string): boolean {
     return this._isAppFile(source)
       || this._isAddonFile(source)
       || this._isSrcFile(source);
   },
 
-  _isAppFile(source) {
+  _isAppFile(source: string): boolean {
     return source.indexOf('app') === 0;
   },
 
-  _isAddonFile(source) {
+  _isAddonFile(source: string): boolean {
     return source.indexOf('addon') === 0;
   },
 
-  _isSrcFile(source) {
+  _isSrcFile(source: string): boolean {
     return source.indexOf('src') === 0;
   },
 
-  _copyFile(output, source, dest) {
+  _copyFile(output: string[], source: string, dest: string) {
     let segments = dest.split(/\/|\\/);
 
     // Make (and record the making of) any missing directories
@@ -97,5 +92,3 @@ module.exports = Command.extend({
     output.push(dest);
   },
 });
-
-module.exports.PRECOMPILE_MANIFEST = PRECOMPILE_MANIFEST;

@@ -4,7 +4,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "outDir": "../lib",
+    "outDir": "../js",
     "strictPropertyInitialization": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
@@ -13,9 +13,9 @@
     "declaration": false,
     "paths": {
       "*": ["./types/*"],
-      "ember-cli/*": ["./types/ember-cli.d.ts"]
+      "ember-cli/*": ["./types/ember-cli.d.ts"],
+      "ember-cli-blueprint-test-helpers/*": ["./types/ember-cli-blueprint-test-helpers.d.ts"]
     },
-    "baseUrl": ".",
-    "rootDir": "lib"
+    "baseUrl": "."
   }
 }

@@ -1,17 +1,12 @@
-'use strict';
+import { describe, beforeEach, it } from 'mocha';
+import { expect } from 'ember-cli-blueprint-test-helpers/chai';
 
-const fs = require('fs-extra');
-const walkSync = require('walk-sync');
+import fs from 'fs-extra';
+import walkSync from 'walk-sync';
+import ember from 'ember-cli-blueprint-test-helpers/lib/helpers/ember';
+import { setupTestHooks, emberNew } from 'ember-cli-blueprint-test-helpers/helpers';
 
-const ember = require('ember-cli-blueprint-test-helpers/lib/helpers/ember');
-const blueprintHelpers = require('ember-cli-blueprint-test-helpers/helpers');
-const setupTestHooks = blueprintHelpers.setupTestHooks;
-const emberNew = blueprintHelpers.emberNew;
-
-const chai = require('ember-cli-blueprint-test-helpers/chai');
-const expect = chai.expect;
-
-describe.skip('Acceptance: ts:clean command', function() {
+describe('Acceptance: ts:clean command', function() {
   setupTestHooks(this);
 
   beforeEach(function() {

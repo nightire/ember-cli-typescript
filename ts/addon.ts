@@ -2,20 +2,40 @@ import Plugin from 'broccoli-plugin';
 import Addon from 'ember-cli/lib/models/addon';
 import UI from 'console-ui';
 import { EventEmitter } from 'events';
-import { getFSEventEmitter } from './project-fs-events';
-import ProjectTypeChecker from './project-typechecker';
+import { addonDefinition } from './lib/utilities/ember-cli-definitions';
+import { getFSEventEmitter } from './lib/project-fs-events';
+import ProjectTypeChecker from './lib/project-typechecker';
 
-export = EmberCLITypescript;
-class EmberCLITypescript extends Addon.extend({
-  name: 'ember-cli-typescript'
-}) {
-  private events = getFSEventEmitter(this.project);
+type BabelPlugin = string | [string] | [string, Record<string, any>] | [string, Record<string, any>, string];
+
+export = addonDefinition({
+  name: 'ember-cli-typescript',
+  events: null as any as EventEmitter,
+
+  blueprintsPath() {
+    return `${__dirname}/../blueprints`;
+  },
+
+  includedCommands() {
+    if (this.project.isEmberCLIAddon()) {
+      return {
+        'ts:precompile': require('./lib/commands/precompile').default,
+        'ts:clean': require('./lib/commands/clean').default,
+      };
+    }
+  },
 
   shouldIncludeChildAddon(addon: Addon) {
     // For testing, we have dummy in-repo addons set up, but e-c-ts doesn't depend on them;
     // its dummy app does. Otherwise we'd have a circular dependency.
     return !['in-repo-a', 'in-repo-b', 'in-repo-c'].includes(addon.name);
-  }
+  },
+
+  init() {
+    this._super.init.apply(this, arguments);
+    this.events = getFSEventEmitter(this.project);
+    this.checkDevelopmentMode();
+  },
 
   setupPreprocessorRegistry(type: 'parent' | 'self') {
     if (type !== 'parent') { return; }
@@ -26,7 +46,11 @@ class EmberCLITypescript extends Addon.extend({
     let emberCLIBabelOptions = cloneOrInit(options, 'ember-cli-babel', {});
     let babelOptions = cloneOrInit(options, 'babel', {});
 
-    let plugins = cloneOrInit(babelOptions, 'plugins', []) as Array<[string] | [string, Record<string, any>]>;
+    let plugins: BabelPlugin[] = cloneOrInit(babelOptions, 'plugins', []);
+
+    // TODO coordinate with the ember-decorators folks on how to avoid duplication here;
+    // their current `hasPlugin` check doesn't account for resolved paths, and we're not
+    // currently doing any deduping at all 😅
     plugins.unshift(
       [require.resolve('@babel/plugin-transform-typescript')],
       [require.resolve('@babel/plugin-proposal-decorators'), { legacy: true }],
@@ -38,15 +62,24 @@ class EmberCLITypescript extends Addon.extend({
     if (!extensions.includes('ts')) {
       extensions.push('ts');
     }
-  }
+  },
 
   treeForAddon() {
     if (this.parent === this.project) {
       let typechecker = new ProjectTypeChecker(this.project);
       return new TSTypeChecker(this.project.ui, typechecker, this.events);
     }
+  },
+
+  checkDevelopmentMode() {
+    if (this.isDevelopingAddon() && __filename.endsWith('.js')) {
+      this.ui.writeWarnLine(
+        'ember-cli-typescript is under development but loading prebuilt .js files; ' +
+        'you may need to run `yarn addon:clean` in order to see changes to addon code.'
+      );
+    }
   }
-}
+});
 
 function cloneOrInit<V>(obj: any, key: string, defaultTo: V): V {
   let existingValue = obj[key];
