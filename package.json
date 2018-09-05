@@ -26,9 +26,10 @@
     "build": "ember build",
     "lint:js": "eslint --ext js --ext ts ./*.js addon addon-test-support app blueprints config lib server test-support tests ts",
     "start": "ember serve",
-    "test": "ember test",
+    "addon:watch": "yarn addon:build --watch",
     "addon:build": "rimraf js && tsc --project ts --noEmit false",
     "addon:clean": "rimraf js",
+    "test": "ember test",
     "test:all": "ember try:each",
     "test:node": "mocha js/tests --recursive"
   },

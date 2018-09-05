@@ -1,4 +1,5 @@
 import Addon from 'ember-cli/lib/models/addon';
+import Blueprint from 'ember-cli/lib/models/blueprint';
 import Command from 'ember-cli/lib/models/command';
 
 /*
@@ -13,6 +14,10 @@ import Command from 'ember-cli/lib/models/command';
  */
 
 export function addonDefinition<T>(definition: T & ThisType<T & Addon>) {
+  return definition;
+}
+
+export function blueprintDefinition<T>(definition: T & ThisType<T & Blueprint>) {
   return definition;
 }
 

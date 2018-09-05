@@ -28,8 +28,11 @@ declare module 'ember-cli/lib/models/project' {
     name(): string;
     root: string;
     ui: UI;
+    pkg: Record<string, any>;
     require(module: string): unknown;
     isEmberCLIAddon(): boolean;
+    isModuleUnification?(): boolean;
+    dependencies(): Record<string, string>;
   }
 }
 
@@ -51,10 +54,20 @@ declare module 'ember-cli/lib/models/watcher' {
 
 declare module 'ember-cli/lib/models/blueprint' {
   import CoreObject from 'core-object';
+  import UI from 'console-ui';
+  import Project from 'ember-cli/lib/models/project';
+
+  interface PackageConfig {
+    name: string;
+    target: string;
+  }
 
   export = Blueprint;
   class Blueprint extends CoreObject {
-
+    project: Project;
+    ui: UI;
+    taskFor(name: string): unknown;
+    addPackagesToProject(packages: PackageConfig[]): Promise<void>;
   }
 }
 

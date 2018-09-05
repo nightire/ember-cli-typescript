@@ -1,7 +1,7 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs-extra';
+import path from 'path';
+import Project from 'ember-cli/lib/models/project';
+import { blueprintDefinition } from '../../lib/utilities/ember-cli-definitions';
 
 const APP_DECLARATIONS = `
 import Ember from 'ember';
@@ -14,12 +14,17 @@ declare global {
 export {};
 `;
 
-module.exports = {
+interface TokenOptions {
+  inAddon: boolean;
+  dasherizedModuleName: string;
+}
+
+export = blueprintDefinition({
   APP_DECLARATIONS,
 
   description: 'Initialize files needed for typescript compilation',
 
-  install(options) {
+  install(options: { project: Project, dummy: boolean }) {
     if (options.project.isEmberCLIAddon()) {
       options.dummy = true;
     }
@@ -27,7 +32,7 @@ module.exports = {
     return this._super.install.apply(this, arguments);
   },
 
-  locals() {
+  locals(): Record<string, any> {
     let updatePathsForAddon = require('ember-cli-typescript-blueprints/lib/utilities/update-paths-for-addon');
     let inRepoAddons = (this.project.pkg['ember-addon'] || {}).paths || [];
     let hasMirage = 'ember-cli-mirage' in (this.project.pkg.devDependencies || {});
@@ -47,7 +52,7 @@ module.exports = {
 
     return {
       includes: JSON.stringify(includes.map(include => `${include}/**/*`), null, 2).replace(/\n/g, '\n  '),
-      pathsFor: dasherizedName => {
+      pathsFor: (dasherizedName: string) => {
         let appName = isAddon ? 'dummy' : dasherizedName;
         let paths = {
           [`${appName}/tests/*`]: ['tests/*'],
@@ -87,7 +92,7 @@ module.exports = {
 
         return JSON.stringify(paths, null, 2).replace(/\n/g, '\n    ');
       },
-      baseDeclarations: dasherizedName => {
+      baseDeclarations: (dasherizedName: string) => {
         const isDummyApp = dasherizedName === 'dummy';
         const useAppDeclarations = !(isAddon || isDummyApp);
         return useAppDeclarations ? APP_DECLARATIONS : '';
@@ -100,11 +105,11 @@ module.exports = {
 
     // Return custom tokens to be replaced in your files.
     return {
-      __app_name__(options) {
+      __app_name__(options: TokenOptions) {
         return options.inAddon ? 'dummy' : options.dasherizedModuleName;
       },
 
-      __config_root__(options) {
+      __config_root__(options: TokenOptions) {
         if (isMU) {
           return options.inAddon ? 'tests/dummy' : '.';
         } else {
@@ -155,8 +160,12 @@ module.exports = {
     return this.addPackagesToProject(packages);
   },
 
+  filesPath() {
+    return `${__dirname}/../../../blueprint-files/ember-cli-typescript`;
+  },
+
   files() {
-    let files = this._super.files.apply(this, arguments);
+    let files: string[] = this._super.files.apply(this, arguments);
 
     if (!this._has('ember-data')) {
       files = files.filter(file => file !== 'types/ember-data.d.ts');
@@ -180,7 +189,7 @@ module.exports = {
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
   },
 
-  _addScript(scripts, type, script) {
+  _addScript(scripts: Record<string, string>, type: string, script: string) {
     if (scripts[type] && scripts[type] !== script) {
       this.ui.writeWarnLine(
         `Found a pre-existing \`${type}\` script in your package.json. ` +
@@ -192,9 +201,9 @@ module.exports = {
     scripts[type] = script;
   },
 
-  _has(pkg) {
+  _has(pkg: string) {
     if (this.project) {
       return pkg in this.project.dependencies();
     }
   },
-};
+});

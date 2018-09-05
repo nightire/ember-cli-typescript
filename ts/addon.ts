@@ -13,7 +13,7 @@ export = addonDefinition({
   events: null as any as EventEmitter,
 
   blueprintsPath() {
-    return `${__dirname}/../blueprints`;
+    return `${__dirname}/blueprints`;
   },
 
   includedCommands() {
